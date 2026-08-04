@@ -24,6 +24,7 @@ const errorText = document.getElementById('errorText');
 const dismissError = document.getElementById('dismissError');
 
 const STORAGE_KEY = 'groq-chatbot-history';
+const API_BASE_URL = window.API_BASE_URL || '';
 
 // ---- Conversation state ------------------------------------------------
 // This array is the single source of truth for the conversation. Each item:
@@ -97,7 +98,7 @@ async function handleSend() {
   setStreaming(true);
 
   try {
-    const response = await fetch('/api/chat', {
+    const response = await fetch(`${API_BASE_URL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: conversation }),

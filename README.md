@@ -120,26 +120,63 @@ curl http://localhost:3000/api/health
 
 ## 7. Deployment
 
-Any Node.js host works. Two easy free/cheap options:
+This project is pre-configured to host out-of-the-box on **Netlify** (via Netlify Functions & static hosting) and **Render** (via Express Web Service / Blueprint).
 
-### Option A: Render.com (simplest)
-1. Push this project to a GitHub repo.
-2. On [render.com](https://render.com) → **New → Web Service** → connect your repo.
-3. Set **Root Directory** to `backend`.
-4. **Build Command:** `npm install`  **Start Command:** `npm start`
-5. Add environment variable `GROQ_API_KEY` (and optionally `GROQ_MODEL`) in the Render dashboard — never commit `.env` to git.
-6. Deploy. Render gives you a public URL serving both your API and frontend.
+---
 
-### Option B: Railway.app
-1. Push to GitHub, then **New Project → Deploy from GitHub repo** on [railway.app](https://railway.app).
-2. Set the root/service directory to `backend`.
-3. Add `GROQ_API_KEY` under **Variables**.
-4. Railway auto-detects `npm start`. Deploy and you'll get a public URL.
+### Option A: Netlify Hosting (Serverless)
+
+Netlify hosts the frontend statically and handles backend API calls (`/api/chat`, `/api/health`) via Netlify Serverless Functions with token streaming support.
+
+1. **Push your project to GitHub / GitLab / Bitbucket**.
+2. Log into [Netlify](https://app.netlify.com) and click **"Add new site" → "Import an existing project"**.
+3. Connect your repository. Netlify automatically detects `netlify.toml`:
+   - **Publish directory:** `frontend`
+   - **Functions directory:** `netlify/functions`
+4. Go to **Site configuration → Environment variables** and add:
+   - `GROQ_API_KEY`: `your_groq_api_key_here`
+   - *(Optional)* `GROQ_MODEL`: `openai/gpt-oss-120b`
+5. Click **Deploy site**. Netlify gives you a public URL (e.g. `https://your-chatbot.netlify.app`).
+
+---
+
+### Option B: Render Hosting (Node / Express Web Service)
+
+Render hosts the Express backend and frontend together as a Node Web Service.
+
+1. **Push your project to GitHub**.
+2. Log into [Render](https://dashboard.render.com).
+3. Click **New + → Blueprint** (or **Web Service**):
+   - **Blueprint (1-Click):** Connect your repo. Render automatically reads `render.yaml`. Fill in `GROQ_API_KEY` when prompted and click **Apply**.
+   - **Web Service (Manual):**
+     - **Build Command:** `npm install`
+     - **Start Command:** `npm start`
+     - Under **Environment Variables**, add `GROQ_API_KEY`.
+4. Click **Create Web Service**. Render gives you a public URL (e.g. `https://groq-chatbot.onrender.com`).
+
+---
+
+### Option C: Netlify Frontend + Render Backend
+
+If you prefer hosting the static frontend on Netlify's CDN and the backend API on Render:
+1. Deploy the backend on Render as a Web Service (Option B).
+2. In `netlify.toml`, update the redirect rule to point to your Render backend:
+   ```toml
+   [[redirects]]
+     from = "/api/*"
+     to = "https://your-render-app.onrender.com/api/:splat"
+     status = 200
+     force = true
+   ```
+3. Deploy the frontend repository to Netlify.
+
+---
 
 ### Before deploying, double-check:
-- [ ] `.env` is in `.gitignore` (it is, by default here) — **never** commit your API key.
-- [ ] `npm install` runs cleanly with no errors.
-- [ ] You've tested `npm start` locally one final time.
+- [ ] `.env` is in `.gitignore` (it is, by default) — **never** commit your API key.
+- [ ] `GROQ_API_KEY` is added to your hosting environment variables.
+- [ ] `npm install` runs cleanly without errors.
+
 
 ---
 
